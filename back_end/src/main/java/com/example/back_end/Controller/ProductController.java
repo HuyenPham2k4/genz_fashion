@@ -8,35 +8,44 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
-@RequestMapping("admin/product")
+@RequestMapping("products")
 public class ProductController {
 
     @Autowired
     private ProductService productService;
 
-    @GetMapping("findAll")
+    @GetMapping("")
     public List<Products> getAll() {
         return productService.getAllProduct();
     }
 
-    // Placeholder for save and update endpoints
-    @PostMapping("/saved")
-    public Products saved(@RequestBody Products product) {
-        // Implement save logic or delegate to a service as needed
-        throw new UnsupportedOperationException("Save operation not implemented yet.");
+    @GetMapping("/{id}")
+    public ResponseEntity<Products> getProductById(@PathVariable Long id) {
+        return productService.getProductById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<?> updated(@RequestBody Products product) {
+    @PostMapping("/saved")
+    public Products saved(@RequestBody Products product) {
+        return productService.createProduct(product);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Products> updateProduct(@PathVariable Long id, @RequestBody Products productDetails) {
         try {
-            // Implement update logic or delegate to a service as needed
-            throw new UnsupportedOperationException("Update operation not implemented yet.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+            Products updatedProduct = productService.updateProduct(id, productDetails);
+            return ResponseEntity.ok(updatedProduct);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
         }
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 }
